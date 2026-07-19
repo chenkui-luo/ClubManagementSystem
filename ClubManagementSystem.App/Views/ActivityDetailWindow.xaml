@@ -1,0 +1,222 @@
+<mah:MetroWindow x:Class="ClubManagementSystem.App.Views.ActivityDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        Title="活动详情" Height="650" Width="850"
+        MinHeight="500" MinWidth="700"
+        WindowStartupLocation="CenterOwner"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}">
+
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/ClubManagementSystem.App;component/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="TransparentArrowButtonStyle" TargetType="Button" BasedOn="{StaticResource MahApps.Styles.Button}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Foreground" Value="#666" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </mah:MetroWindow.Resources>
+
+    <Grid Background="#F5F6FA">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="25">
+                <!-- Title -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock x:Name="TxtActivityTitle" FontSize="22" FontWeight="Bold"
+                               Foreground="#1A73E8" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <TextBlock x:Name="TxtActivityInfo" FontSize="13" Foreground="#888" Margin="0,0,0,20" />
+
+                <!-- Description + Edit Panel (combined) -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="活动简介" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="#333" Margin="0,0,0,10" />
+
+                        <!-- Read-only views -->
+                        <TextBlock x:Name="TxtDescription" FontSize="14" Foreground="#555"
+                                   TextWrapping="Wrap" />
+
+                        <!-- Edit panel (hidden by default) -->
+                        <StackPanel x:Name="EditAllPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                            <!-- Activity name -->
+                            <TextBlock Text="活动名称" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                            <TextBox x:Name="TxtEditTitle" Style="{StaticResource FormTextBoxStyle}" />
+
+                            <!-- Location + Time -->
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="活动地点" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox x:Name="TxtEditLocation" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="开始时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker x:Name="DpEditStart" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="结束时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker x:Name="DpEditEnd" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Description editor -->
+                            <TextBlock Text="活动简介" FontSize="13" Foreground="#555" Margin="0,12,0,3" />
+                            <TextBox x:Name="TxtEditDescription" FontSize="14"
+                                     TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80"
+                                     Style="{StaticResource FormTextBoxStyle}" />
+
+                            <!-- Save / Cancel -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                                <Button Content="取消" Click="CancelEditAll_Click"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333" />
+                                <Button Content="保存" Click="SaveEditAll_Click"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White" Margin="5,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Edit button at bottom-left -->
+                        <Button x:Name="BtnEditAll" Content="编辑活动信息"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White"
+                                Margin="0,15,0,0" HorizontalAlignment="Left"
+                                Click="EditAll_Click"
+                                Visibility="Collapsed" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Images -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                        x:Name="ImageSection">
+                    <StackPanel>
+                        <TextBlock Text="活动照片" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="#333" Margin="0,0,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="56" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="◀" FontSize="36"
+                                    Width="56" Height="72" VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Style="{StaticResource TransparentArrowButtonStyle}"
+                                    Click="PrevImage_Click" />
+                            <Border Grid.Column="1" Height="320" Background="#F0F0F0"
+                                    CornerRadius="4"
+                                    MouseLeftButtonDown="ImgMain_Click" Cursor="Hand">
+                                <Border.ToolTip>
+                                    <TextBlock Text="点击放大预览" />
+                                </Border.ToolTip>
+                                <Image x:Name="ImgMain" Stretch="Uniform" Margin="10" />
+                            </Border>
+                            <Button Grid.Column="2" Content="▶" FontSize="36"
+                                    Width="56" Height="72" VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Style="{StaticResource TransparentArrowButtonStyle}"
+                                    Click="NextImage_Click" />
+                        </Grid>
+                        <TextBlock x:Name="TxtImageIndex" FontSize="12" Foreground="#999"
+                                   HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        <TextBlock x:Name="TxtNoImages" Text="暂无照片" FontSize="13"
+                                   Foreground="#BBB" HorizontalAlignment="Center"
+                                   Margin="0,10,0,0" Visibility="Collapsed" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button x:Name="BtnUploadImage" Content="上传图片" Click="UploadImage_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#1A73E8" Foreground="White" />
+                            <Button Content="放大预览" Click="ZoomImage_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#9C27B0" Foreground="White"
+                                    Margin="10,0,0,0" />
+                            <Button Content="下载图片" Click="DownloadImage_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#FF9800" Foreground="White"
+                                    Margin="10,0,0,0" />
+                            <Button x:Name="BtnDeleteImage" Content="删除当前图片" Click="DeleteCurrentImage_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#EA4335" Foreground="White"
+                                    Margin="10,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Attachments -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                        x:Name="AttachmentSection">
+                    <StackPanel>
+                        <TextBlock Text="附件文件" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="#333" Margin="0,0,0,10" />
+                        <DataGrid x:Name="DgFiles" AutoGenerateColumns="False"
+                                  IsReadOnly="True" SelectionMode="Single"
+                                  GridLinesVisibility="Horizontal" Height="160"
+                                  PreviewMouseWheel="DgFiles_PreviewMouseWheel"
+                                  MouseDoubleClick="DgFiles_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="文件名" Binding="{Binding OriginalName}" Width="*" />
+                                <DataGridTemplateColumn Header="大小(KB)" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding FileSizeKB, StringFormat={}{0:F0} KB}"
+                                                       HorizontalAlignment="Right" Margin="0,0,8,0" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="说明" Binding="{Binding Description}" Width="150" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock x:Name="TxtNoFiles" Text="暂无附件" FontSize="13"
+                                   Foreground="#BBB" HorizontalAlignment="Center"
+                                   Margin="0,10,0,0" Visibility="Collapsed" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="下载选中" Click="DownloadFile_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#FF9800" Foreground="White" />
+                            <Button x:Name="BtnUploadFile" Content="上传文件" Click="UploadFile_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#34A853" Foreground="White" />
+                            <Button x:Name="BtnDeleteFile" Content="删除选中文件" Click="DeleteSelectedFile_Click"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#EA4335" Foreground="White"
+                                    Margin="10,0,0,0" />
+                        </StackPanel>
+                        <TextBlock x:Name="TxtLimit" FontSize="12" Foreground="#AAA"
+                                   Margin="0,8,0,0">
+                            <Run Text="限制：最多10个文件（含图片），单文件最大10MB，图片最多5张" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</mah:MetroWindow>

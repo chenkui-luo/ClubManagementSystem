@@ -1,0 +1,75 @@
+<mah:MetroWindow x:Class="ClubManagementSystem.App.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:vm="clr-namespace:ClubManagementSystem.App.ViewModels"
+        Title="社团管理系统 - 登录"
+        Height="480" Width="420"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+        BorderThickness="1"
+        BorderBrush="{DynamicResource MahApps.Brushes.Accent}">
+
+    <Window.DataContext>
+        <vm:LoginViewModel />
+    </Window.DataContext>
+
+    <Grid Background="#F5F6FA">
+        <Border Background="White" CornerRadius="12" Width="360" Height="420"
+                VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="2" Opacity="0.15" BlurRadius="20" />
+            </Border.Effect>
+
+            <StackPanel VerticalAlignment="Center" Margin="35,0">
+                <!-- Logo / Title -->
+                <TextBlock Text="社团管理系统"
+                           FontSize="26" FontWeight="Bold"
+                           Foreground="#1A73E8"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
+                <TextBlock Text="Club Management System"
+                           FontSize="12" Foreground="#999"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,30" />
+
+                <!-- Student ID -->
+                <TextBlock Text="学号 / 账号" FontSize="13" Foreground="#555" Margin="0,0,0,4" />
+                <TextBox Text="{Binding StudentId, UpdateSourceTrigger=PropertyChanged}"
+                         mah:TextBoxHelper.Watermark="请输入学号"
+                         Style="{StaticResource FormTextBoxStyle}" />
+
+                <!-- Password -->
+                <TextBlock Text="密码" FontSize="13" Foreground="#555" Margin="0,8,0,4" />
+                <PasswordBox x:Name="PasswordBox"
+                             mah:TextBoxHelper.Watermark="请输入密码"
+                             Style="{StaticResource MahApps.Styles.PasswordBox}"
+                             Height="36" FontSize="14" />
+
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#E74C3C" FontSize="12"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0" />
+
+                <!-- Login button -->
+                <Button Content="登  录"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Background="#1A73E8" Foreground="White"
+                        Height="42" FontSize="15" FontWeight="SemiBold"
+                        Margin="0,20,0,0"
+                        Command="{Binding LoginCommand}"
+                        CommandParameter="{Binding ElementName=PasswordBox}" />
+
+                <!-- Register link -->
+                <TextBlock HorizontalAlignment="Center" Margin="0,18,0,0" FontSize="12">
+                    <Hyperlink Command="{Binding RegisterCommand}" Foreground="#1A73E8"
+                               TextDecorations="None">
+                        还没有账号？立即注册
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</mah:MetroWindow>

@@ -1,0 +1,910 @@
+<mah:MetroWindow x:Class="ClubManagementSystem.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:vm="clr-namespace:ClubManagementSystem.App.ViewModels"
+        xmlns:converters="clr-namespace:ClubManagementSystem.App.Converters"
+        Title="社团管理系统"
+        Height="720" Width="1200"
+        MinHeight="600" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                <TextBlock VerticalAlignment="Center" FontSize="13" Foreground="#555">
+                    <Run Text="{Binding UserDisplayName, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text=" (" />
+                    <Run Text="{Binding UserRoleLabel, Mode=OneWay}" />
+                    <Run Text=")" />
+                </TextBlock>
+                <Button Content="退出" Margin="15,0,0,0"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding LogoutCommand}" />
+            </StackPanel>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
+
+    <mah:MetroWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+
+        <!-- ===== PAGE TEMPLATES ===== -->
+
+        <!-- Club Management -->
+        <DataTemplate DataType="{x:Type vm:ClubManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0" Margin="0,0,0,15">
+                        <TextBox Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+                                 mah:TextBoxHelper.Watermark="搜索社团名称..."
+                                 Width="250" Height="34" VerticalAlignment="Center"
+                                 Margin="0,0,10,0" FontSize="14" />
+                        <ComboBox ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding SelectedCategoryFilter}"
+                                  DisplayMemberPath="Name"
+                                  mah:TextBoxHelper.Watermark="全部类别"
+                                  Width="150" Height="34" Margin="0,0,10,0"
+                                  VerticalAlignment="Center" />
+                        <Button Content="+ 创建社团" Command="{Binding CreateClubCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White"
+                                VerticalAlignment="Center" />
+                    </WrapPanel>
+
+                    <!-- Edit Form -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}"
+                            Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,15">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="创建新社团" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedClub}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="创建新社团" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="社团名称" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding NewClubName}" Style="{StaticResource FormTextBoxStyle}" />
+                                    <TextBlock Text="社团类别" FontSize="13" Foreground="#555" Margin="0,8,0,3" />
+                                    <ComboBox ItemsSource="{Binding Categories}"
+                                              SelectedItem="{Binding NewClubCategory}"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource FormComboBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="联系方式" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding NewClubContact}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="社团简介" FontSize="13" Foreground="#555" Margin="0,8,0,3" />
+                            <TextBox Text="{Binding NewClubDescription}" Height="80"
+                                     TextWrapping="Wrap" AcceptsReturn="True"
+                                     Style="{StaticResource FormTextBoxStyle}" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="取消" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333"
+                                        Command="{Binding CancelEditCommand}" />
+                                <Button Content="保存" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding SaveClubCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Club List -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="社团列表" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding Clubs}"
+                                      SelectedItem="{Binding SelectedClub}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="社团名称" Binding="{Binding Name}" Width="180" />
+                                    <DataGridTextColumn Header="类别" Binding="{Binding Category.Name}" Width="100" />
+                                    <DataGridTextColumn Header="社长" Binding="{Binding PresidentName}" Width="100" />
+                                    <DataGridTextColumn Header="成员数" Binding="{Binding ClubMembers.Count}" Width="70" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="80" />
+                                    <DataGridTextColumn Header="创建时间" Binding="{Binding CreatedAt, StringFormat=yyyy-MM-dd}" Width="120" />
+                                    <DataGridTextColumn Header="简介" Binding="{Binding Description}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                                <Button Content="查看详情" Click="ClubManage_ViewDetail"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White" />
+                                <Button Content="申请加入" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#34A853" Foreground="White"
+                                        Command="{Binding JoinClubCommand}" />
+                                <Button Content="删除选中" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding DeleteClubCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Member Management -->
+        <DataTemplate DataType="{x:Type vm:MemberManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="选择社团：" VerticalAlignment="Center"
+                                   FontSize="14" Foreground="#555" Margin="0,0,10,0" />
+                        <ComboBox ItemsSource="{Binding Clubs}"
+                                  SelectedItem="{Binding SelectedClub}"
+                                  DisplayMemberPath="Name"
+                                  Width="250" Height="34" />
+                    </StackPanel>
+
+                    <!-- Members -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="社团成员" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding Members}"
+                                      SelectedItem="{Binding SelectedMember}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="姓名" Binding="{Binding User.Name}" Width="120" />
+                                    <DataGridTextColumn Header="学号" Binding="{Binding User.StudentId}" Width="120" />
+                                    <DataGridTextColumn Header="角色" Binding="{Binding Role}" Width="80" />
+                                    <DataGridTextColumn Header="职务" Binding="{Binding Position}" Width="120" />
+                                    <DataGridTextColumn Header="加入时间" Binding="{Binding JoinedAt, StringFormat=yyyy-MM-dd}" Width="120" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                                <TextBlock Text="职务：" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="13" />
+                                <TextBox Text="{Binding NewPosition}" Width="150" Height="32"
+                                         mah:TextBoxHelper.Watermark="如: 副社长"
+                                         FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                <Button Content="设为社长" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding SetPresidentCommand}" />
+                                <Button Content="提升为干事" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#34A853" Foreground="White"
+                                        Command="{Binding PromoteCommand}" />
+                                <Button Content="降为成员" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#FBBC04" Foreground="#333"
+                                        Command="{Binding DemoteCommand}" />
+                                <Button Content="移除成员" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding RemoveMemberCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Applications -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="0,15,0,0"
+                            Visibility="{Binding CanSeeApplications, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="待审批申请" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding Applications}"
+                                      SelectedItem="{Binding SelectedApplication}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="申请人" Binding="{Binding User.Name}" Width="120" />
+                                    <DataGridTextColumn Header="学号" Binding="{Binding User.StudentId}" Width="120" />
+                                    <DataGridTextColumn Header="申请时间" Binding="{Binding ApplyTime, StringFormat=yyyy-MM-dd HH:mm}" Width="150" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="80" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="通过" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#34A853" Foreground="White"
+                                        Command="{Binding ApproveApplicationCommand}" />
+                                <Button Content="拒绝" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding RejectApplicationCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Activity Board (all users) -->
+        <DataTemplate DataType="{x:Type vm:ActivityBoardViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Activity List -->
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="活动广场" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding Activities}"
+                                      SelectedItem="{Binding SelectedActivity}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="活动名称" Binding="{Binding Title}" Width="180" />
+                                    <DataGridTextColumn Header="主办社团" Binding="{Binding Club.Name}" Width="130" />
+                                    <DataGridTextColumn Header="简介" Binding="{Binding Description}" Width="160" />
+                                    <DataGridTextColumn Header="地点" Binding="{Binding Location}" Width="120" />
+                                    <DataGridTextColumn Header="开始时间" Binding="{Binding StartTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="结束时间" Binding="{Binding EndTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="70" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                                <Button Content="查看详情" Click="ActivityBoard_ViewDetail"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#FBBC04" Foreground="#333" />
+                                <Button Content="报名参加" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding RegisterCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- My Registrations -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,15,0,0">
+                        <StackPanel>
+                            <TextBlock Text="我的活动报名" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding MyRegistrations}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="活动名称" Binding="{Binding Activity.Title}" Width="180" />
+                                    <DataGridTextColumn Header="主办社团" Binding="{Binding Activity.Club.Name}" Width="130" />
+                                    <DataGridTextColumn Header="报名时间" Binding="{Binding RegisteredAt, StringFormat=yyyy-MM-dd HH:mm}" Width="150" />
+                                    <DataGridTextColumn Header="审批状态" Binding="{Binding Status}" Width="80" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Pending Approvals (admin/manager only) -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="0,15,0,0"
+                            Visibility="{Binding CanSeeApproval, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="待审批报名" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding PendingRegistrations}"
+                                      SelectedItem="{Binding SelectedPending}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="活动" Binding="{Binding Activity.Title}" Width="150" />
+                                    <DataGridTextColumn Header="申请人" Binding="{Binding User.Name}" Width="100" />
+                                    <DataGridTextColumn Header="学号" Binding="{Binding User.StudentId}" Width="100" />
+                                    <DataGridTextColumn Header="报名时间" Binding="{Binding RegisteredAt, StringFormat=yyyy-MM-dd HH:mm}" Width="150" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="80" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="通过" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#34A853" Foreground="White"
+                                        Command="{Binding ApproveCommand}" />
+                                <Button Content="拒绝" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding RejectCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Activity Management -->
+        <DataTemplate DataType="{x:Type vm:ActivityManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="选择社团：" VerticalAlignment="Center"
+                                   FontSize="14" Foreground="#555" Margin="0,0,10,0" />
+                        <ComboBox ItemsSource="{Binding Clubs}"
+                                  SelectedItem="{Binding SelectedClub}"
+                                  DisplayMemberPath="Name"
+                                  Width="250" Height="34" />
+                        <Button Content="+ 发布活动" Command="{Binding ShowCreateCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White"
+                                VerticalAlignment="Center" Margin="20,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Create Form -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                            Visibility="{Binding IsCreating, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="发布新活动" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="#333" Margin="0,0,0,15" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Row 0: 活动名称 | 开始时间 -->
+                                <StackPanel Grid.Row="0" Grid.Column="0">
+                                    <TextBlock Text="活动名称" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding NewTitle}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2">
+                                    <TextBlock Text="开始时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker SelectedDate="{Binding NewStartTime}" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+
+                                <!-- Row 1: 活动地点 | 结束时间 -->
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
+                                    <TextBlock Text="活动地点" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding NewLocation}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,12,0,0">
+                                    <TextBlock Text="结束时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker SelectedDate="{Binding NewEndTime}" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+
+                                <!-- Row 2: 人数上限 | (空) -->
+                                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,12,0,0">
+                                    <TextBlock Text="人数上限" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding NewMaxPeople, TargetNullValue=''}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="活动简介" FontSize="13" Foreground="#555" Margin="0,8,0,3" />
+                            <TextBox Text="{Binding NewDescription}" Height="60"
+                                     Style="{StaticResource FormTextBoxStyle}" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="取消" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333"
+                                        Command="{Binding CancelCreateCommand}" />
+                                <Button Content="发布" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding SaveActivityCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Activity List -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="活动列表" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding Activities}"
+                                      SelectedItem="{Binding SelectedActivity}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="活动名称" Binding="{Binding Title}" Width="180" />
+                                    <DataGridTextColumn Header="简介" Binding="{Binding Description}" Width="160" />
+                                    <DataGridTextColumn Header="地点" Binding="{Binding Location}" Width="120" />
+                                    <DataGridTextColumn Header="开始时间" Binding="{Binding StartTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="结束时间" Binding="{Binding EndTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="报名人数" Binding="{Binding Registrations.Count}" Width="70" />
+                                    <DataGridTextColumn Header="已通过" Binding="{Binding ApprovedCount}" Width="70" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="80" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="查看详情" Click="ActivityManage_ViewDetail"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#FBBC04" Foreground="#333" />
+                                <Button Content="取消活动" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding CancelActivityCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Finance Management -->
+        <DataTemplate DataType="{x:Type vm:FinanceManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="选择社团：" VerticalAlignment="Center"
+                                   FontSize="14" Foreground="#555" Margin="0,0,10,0" />
+                        <ComboBox ItemsSource="{Binding Clubs}"
+                                  SelectedItem="{Binding SelectedClub}"
+                                  DisplayMemberPath="Name"
+                                  Width="250" Height="34" />
+                        <Button Content="+ 记一笔" Command="{Binding ShowAddCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White"
+                                VerticalAlignment="Center" Margin="20,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Add Record Form -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                            Visibility="{Binding IsAdding, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="新增收支记录" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="#333" Margin="0,0,0,15" />
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox SelectedValuePath="Content" SelectedValue="{Binding NewType}" Height="34" Width="100" FontSize="14">
+                                    <ComboBoxItem Content="收入" />
+                                    <ComboBoxItem Content="支出" />
+                                </ComboBox>
+                            </StackPanel>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding NewAmount}"
+                                         mah:TextBoxHelper.Watermark="金额"
+                                         Style="{StaticResource FormTextBoxStyle}" />
+                                <TextBox Grid.Column="2" Text="{Binding NewDescription}"
+                                         mah:TextBoxHelper.Watermark="用途说明"
+                                         Style="{StaticResource FormTextBoxStyle}" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="取消" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333"
+                                        Command="{Binding CancelAddCommand}" />
+                                <Button Content="保存" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding SaveRecordCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Records List -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="收支记录" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock VerticalAlignment="Center" Margin="20,0,0,0" FontSize="15">
+                                    <Run Text="当前余额: " Foreground="#555" />
+                                    <Run Text="{Binding BalanceDisplay, Mode=OneWay}" FontWeight="Bold"
+                                         Foreground="#1A73E8" />
+                                </TextBlock>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Records}"
+                                      SelectedItem="{Binding SelectedRecord}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="60" />
+                                    <DataGridTextColumn Header="金额" Binding="{Binding Amount, StringFormat=N2}" Width="120" />
+                                    <DataGridTextColumn Header="用途" Binding="{Binding Description}" Width="250" />
+                                    <DataGridTextColumn Header="经手人" Binding="{Binding Handler.Name}" Width="100" />
+                                    <DataGridTextColumn Header="时间" Binding="{Binding RecordTime, StringFormat=yyyy-MM-dd HH:mm}" Width="150" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="删除记录" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding DeleteRecordCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Notice Management -->
+        <DataTemplate DataType="{x:Type vm:NoticeManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <Button Content="+ 发布公告" Command="{Binding ShowPublishCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White" />
+                    </StackPanel>
+
+                    <!-- Publish Form -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                            Visibility="{Binding IsPublishing, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="发布公告" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="#333" Margin="0,0,0,15" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding NewTitle}"
+                                         mah:TextBoxHelper.Watermark="公告标题"
+                                         Style="{StaticResource FormTextBoxStyle}" />
+                                <ComboBox Grid.Column="2" ItemsSource="{Binding TargetClubs}"
+                                          SelectedItem="{Binding SelectedTargetClub}"
+                                          DisplayMemberPath="Name"
+                                          mah:TextBoxHelper.Watermark="选择社团(空=全局)"
+                                          Style="{StaticResource FormComboBoxStyle}" />
+                            </Grid>
+                            <TextBox Text="{Binding NewContent}" Height="100"
+                                     mah:TextBoxHelper.Watermark="公告内容"
+                                     TextWrapping="Wrap" AcceptsReturn="True"
+                                     Style="{StaticResource FormTextBoxStyle}" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="取消" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333"
+                                        Command="{Binding CancelPublishCommand}" />
+                                <Button Content="发布" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding PublishCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Notices List -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="公告列表" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding AllNotices}"
+                                      SelectedItem="{Binding SelectedNotice}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="标题" Binding="{Binding Title}" Width="220" />
+                                    <DataGridTextColumn Header="内容" Binding="{Binding Content}" Width="350" />
+                                    <DataGridTextColumn Header="所属社团" Binding="{Binding Club.Name}" Width="120" />
+                                    <DataGridTextColumn Header="发布人" Binding="{Binding Publisher.Name}" Width="100" />
+                                    <DataGridTextColumn Header="发布时间" Binding="{Binding PublishTime, StringFormat=yyyy-MM-dd HH:mm}" Width="150" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="查看详情" Click="NoticeManage_ViewDetail"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White" />
+                                <Button Content="删除公告" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding DeleteNoticeCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- Asset Management -->
+        <DataTemplate DataType="{x:Type vm:AssetManageViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="选择社团：" VerticalAlignment="Center"
+                                   FontSize="14" Foreground="#555" Margin="0,0,10,0" />
+                        <ComboBox ItemsSource="{Binding Clubs}"
+                                  SelectedItem="{Binding SelectedClub}"
+                                  DisplayMemberPath="Name"
+                                  Width="250" Height="34" />
+                        <Button Content="+ 申请场地" Command="{Binding ShowApplyVenueCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Background="#1A73E8" Foreground="White"
+                                VerticalAlignment="Center" Margin="20,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Venue Apply Form -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,15"
+                            Visibility="{Binding IsApplyingVenue, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="申请场地" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="#333" Margin="0,0,0,15" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0">
+                                    <TextBlock Text="场地名称" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding VenueName}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2">
+                                    <TextBlock Text="开始时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker SelectedDate="{Binding VenueStart}" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
+                                    <TextBlock Text="用途" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <TextBox Text="{Binding VenuePurpose}" Style="{StaticResource FormTextBoxStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,12,0,0">
+                                    <TextBlock Text="结束时间" FontSize="13" Foreground="#555" Margin="0,0,0,3" />
+                                    <DatePicker SelectedDate="{Binding VenueEnd}" Height="36" Margin="0,2,0,12" />
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="取消" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#DDD" Foreground="#333"
+                                        Command="{Binding CancelVenueCommand}" />
+                                <Button Content="提交" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#1A73E8" Foreground="White"
+                                        Command="{Binding SubmitVenueCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Venue Applications -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="场地申请记录" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding VenueApps}"
+                                      SelectedItem="{Binding SelectedVenueApp}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="场地" Binding="{Binding Venue}" Width="150" />
+                                    <DataGridTextColumn Header="所属社团" Binding="{Binding Club.Name}" Width="120" />
+                                    <DataGridTextColumn Header="用途" Binding="{Binding Purpose}" Width="*" />
+                                    <DataGridTextColumn Header="开始" Binding="{Binding StartTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="结束" Binding="{Binding EndTime, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="80" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                <Button Content="通过" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#34A853" Foreground="White"
+                                        Command="{Binding ApproveVenueCommand}" />
+                                <Button Content="拒绝" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding RejectVenueCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <!-- My Clubs -->
+        <DataTemplate DataType="{x:Type vm:MyClubsViewModel}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="30,25">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- My Memberships -->
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="我加入的社团" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding MyMemberships}"
+                                      SelectedItem="{Binding SelectedMembership}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="社团" Binding="{Binding Club.Name}" Width="180" />
+                                    <DataGridTextColumn Header="角色" Binding="{Binding Role}" Width="80" />
+                                    <DataGridTextColumn Header="职务" Binding="{Binding Position}" Width="130" />
+                                    <DataGridTextColumn Header="加入时间" Binding="{Binding JoinedAt, StringFormat=yyyy-MM-dd}" Width="130" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="退出选中社团" Style="{StaticResource PrimaryButtonStyle}"
+                                        Background="#EA4335" Foreground="White"
+                                        Command="{Binding LeaveClubCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- My Applications -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,15,0,0">
+                        <StackPanel>
+                            <TextBlock Text="我的入团申请记录" Style="{StaticResource CardTitleStyle}" />
+                            <DataGrid ItemsSource="{Binding MyApplications}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="申请社团" Binding="{Binding Club.Name}" Width="180" />
+                                    <DataGridTextColumn Header="申请时间" Binding="{Binding ApplyTime, StringFormat=yyyy-MM-dd HH:mm}" Width="160" />
+                                    <DataGridTextColumn Header="处理时间" Binding="{Binding ProcessTime, StringFormat=yyyy-MM-dd HH:mm}" Width="160" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="100" />
+                                    <DataGridTextColumn Header="备注" Binding="{Binding Remark}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+    </mah:MetroWindow.Resources>
+
+    <!-- Main Layout -->
+    <mah:HamburgerMenu x:Name="HamburgerMenu"
+                       HamburgerWidth="48"
+                       PanePlacement="Left"
+                       IsPaneOpen="True"
+                       SelectedIndex="0"
+                       ItemInvoked="HamburgerMenu_OnItemInvoked"
+                       DisplayMode="CompactInline">
+
+        <mah:HamburgerMenu.ItemTemplate>
+            <DataTemplate>
+                <Grid Height="44">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Glyph}"
+                               FontFamily="Segoe MDL2 Assets" FontSize="18"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Label}"
+                               FontSize="14" VerticalAlignment="Center"
+                               Margin="4,0,0,0" />
+                </Grid>
+            </DataTemplate>
+        </mah:HamburgerMenu.ItemTemplate>
+
+        <mah:HamburgerMenu.ItemsSource>
+            <mah:HamburgerMenuItemCollection>
+                <mah:HamburgerMenuGlyphItem Label="控制台" Glyph="&#xE80F;" />
+                <mah:HamburgerMenuGlyphItem Label="社团管理" Glyph="&#xE125;" />
+                <mah:HamburgerMenuGlyphItem Label="成员管理" Glyph="&#xE13E;" />
+                <mah:HamburgerMenuGlyphItem Label="活动管理" Glyph="&#xE163;" />
+                <mah:HamburgerMenuGlyphItem Label="财务管理" Glyph="&#xE1A0;" />
+                <mah:HamburgerMenuGlyphItem Label="通知公告" Glyph="&#xE171;" />
+                <mah:HamburgerMenuGlyphItem Label="场地申请" Glyph="&#xE1D2;" />
+            </mah:HamburgerMenuItemCollection>
+        </mah:HamburgerMenu.ItemsSource>
+
+        <Grid>
+            <!-- Dashboard Panel -->
+            <ScrollViewer x:Name="DashboardPanel" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="30,25">
+                    <TextBlock Text="控制台首页" Style="{StaticResource PageTitleStyle}" />
+
+                    <!-- Stats Cards -->
+                    <WrapPanel Margin="0,0,0,20">
+                        <Border Style="{StaticResource CardStyle}" Width="240" Margin="0,0,15,15">
+                            <StackPanel>
+                                <TextBlock Text="社团总数" Foreground="#888" FontSize="13" />
+                                <TextBlock Text="{Binding TotalClubs}" FontSize="32"
+                                           FontWeight="Bold" Foreground="#1A73E8" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardStyle}" Width="240" Margin="0,0,15,15">
+                            <StackPanel>
+                                <TextBlock Text="成员总数" Foreground="#888" FontSize="13" />
+                                <TextBlock Text="{Binding TotalMembers}" FontSize="32"
+                                           FontWeight="Bold" Foreground="#34A853" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardStyle}" Width="240" Margin="0,0,15,15">
+                            <StackPanel>
+                                <TextBlock Text="活动总数" Foreground="#888" FontSize="13" />
+                                <TextBlock Text="{Binding TotalActivities}" FontSize="32"
+                                           FontWeight="Bold" Foreground="#FBBC04" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardStyle}" Width="240" Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="通知公告" Foreground="#888" FontSize="13" />
+                                <TextBlock Text="{Binding TotalNotices}" FontSize="32"
+                                           FontWeight="Bold" Foreground="#EA4335" />
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+
+                    <!-- Recent Clubs & Notices -->
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="最近社团" Style="{StaticResource CardTitleStyle}" />
+                                <ItemsControl ItemsSource="{Binding RecentClubs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#EEE" BorderThickness="0,0,0,1"
+                                                    Padding="8,10" Cursor="Hand"
+                                                    MouseLeftButtonDown="DashboardClub_Click" Tag="{Binding ClubId}">
+                                                <Border.ToolTip><TextBlock Text="点击查看详情" /></Border.ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                               FontSize="14" Foreground="#333" />
+                                                    <TextBlock Text="{Binding Description}"
+                                                               FontSize="12" Foreground="#999"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="最新公告" Style="{StaticResource CardTitleStyle}" />
+                                <ItemsControl ItemsSource="{Binding RecentNotices}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#EEE" BorderThickness="0,0,0,1"
+                                                    Padding="8,10" Cursor="Hand"
+                                                    MouseLeftButtonDown="DashboardNotice_Click" Tag="{Binding Id}">
+                                                <Border.ToolTip><TextBlock Text="点击查看详情" /></Border.ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                                                               FontSize="14" Foreground="#333" />
+                                                    <TextBlock Text="{Binding PublishTime, StringFormat=yyyy-MM-dd}"
+                                                               FontSize="12" Foreground="#999" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Page Content (for sub-pages) -->
+            <ContentControl x:Name="PageContent"
+                            Content="{Binding CurrentView}"
+                            Visibility="Collapsed" />
+        </Grid>
+    </mah:HamburgerMenu>
+</mah:MetroWindow>

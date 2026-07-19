@@ -1,0 +1,40 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# 编译输出
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+# VS Code
+.vscode/
+
+# 临时文件
+*.tmp
+*.log
+*.cache
+*.vsidx
+*.db-shm
+*.db-wal
+*.vsdx
+*.vscidx
+*.vsidx
+
+# 用户上传的文件（运行时动态生成，不需要提交）
+Files/
+*.mdf
+*.ldf
