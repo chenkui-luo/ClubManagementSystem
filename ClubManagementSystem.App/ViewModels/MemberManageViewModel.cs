@@ -65,9 +65,10 @@ namespace ClubManagementSystem.App.ViewModels
         // 是否显示待审批区域
         public bool CanSeeApplications => Session.IsAdmin || Session.MyManagedClubIds.Count > 0;
 
-        // 管理员可为无社长的社团指定社长; 社长可转让
-        public bool CanSetPresident => CanManageMembers && SelectedMember != null
-            && SelectedMember.Role != "社长";
+        // 只有管理员和该社团的社长才能设置/转让社长
+        public bool CanSetPresident => SelectedMember != null
+            && SelectedMember.Role != "社长"
+            && (Session.IsAdmin || (SelectedClub != null && Session.IsPresidentOf(SelectedClub.ClubId)));
 
         public ICommand PromoteCommand { get; }
         public ICommand DemoteCommand { get; }
@@ -155,11 +156,10 @@ namespace ClubManagementSystem.App.ViewModels
             if (!CanManageMembers) return;
             if (SelectedMember == null) return;
 
-            // 社长不能自己删除自己（退出社团）
-            if (!Session.IsAdmin && SelectedMember.UserId == Session.CurrentUser.UserId
-                && SelectedMember.Role == "社长")
+            // 任何人都不能在成员管理界面中把自己移除
+            if (SelectedMember.UserId == Session.CurrentUser.UserId)
             {
-                MessageBox.Show("社长不能删除自己，请先将社长职位转让给其他成员后再退出。",
+                MessageBox.Show("不能在此处移除自己，如需退出社团请在\"我的社团\"页面中操作。",
                     "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }

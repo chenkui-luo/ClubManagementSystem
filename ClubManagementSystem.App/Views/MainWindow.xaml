@@ -427,7 +427,7 @@
                                 <Button Content="查看详情" Click="ActivityManage_ViewDetail"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         Background="#FBBC04" Foreground="#333" />
-                                <Button Content="取消活动" Style="{StaticResource PrimaryButtonStyle}"
+                                <Button Content="删除活动" Style="{StaticResource PrimaryButtonStyle}"
                                         Background="#EA4335" Foreground="White"
                                         Command="{Binding CancelActivityCommand}" />
                             </StackPanel>

@@ -109,6 +109,25 @@ namespace ClubManagementSystem.App.Services
 
         // ===== 入团申请 =====
 
+        public bool DirectJoin(int clubId, int userId)
+        {
+            using (var db = new AppDbContext())
+            {
+                if (db.ClubMembers.Any(m => m.ClubId == clubId && m.UserId == userId))
+                    return false;
+
+                db.ClubMembers.Add(new ClubMember
+                {
+                    ClubId = clubId,
+                    UserId = userId,
+                    Role = "成员",
+                    JoinedAt = DateTime.Now
+                });
+                db.SaveChanges();
+                return true;
+            }
+        }
+
         public bool ApplyJoin(int clubId, int userId)
         {
             using (var db = new AppDbContext())

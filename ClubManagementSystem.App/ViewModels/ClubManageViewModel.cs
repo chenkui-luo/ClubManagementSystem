@@ -67,7 +67,7 @@ namespace ClubManagementSystem.App.ViewModels
         public bool CanCreateClub => true;
         public bool CanEditClub => Session.IsAdmin || (SelectedClub != null && Session.MyManagedClubIds.Contains(SelectedClub.ClubId));
         public bool CanDeleteClub => Session.IsAdmin;
-        public bool CanJoinClub => SelectedClub != null && !Session.IsAdmin
+        public bool CanJoinClub => SelectedClub != null
             && SelectedClub.Status == "正常"
             && !Session.MyAllClubIds.Contains(SelectedClub.ClubId);
 
@@ -210,11 +210,24 @@ namespace ClubManagementSystem.App.ViewModels
                 return;
             }
 
-            var result = MessageBox.Show(
+            if (Session.IsAdmin)
+            {
+                var result = MessageBox.Show(
+                    $"确定要加入 \"{SelectedClub.Name}\" 吗？", "加入社团",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes) return;
+
+                _memberService.DirectJoin(SelectedClub.ClubId, Session.CurrentUser.UserId);
+                RefreshSession();
+                MessageBox.Show("已成功加入社团。", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var applyResult = MessageBox.Show(
                 $"确定要申请加入 \"{SelectedClub.Name}\" 吗？", "申请加入社团",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-            if (result != MessageBoxResult.Yes) return;
+            if (applyResult != MessageBoxResult.Yes) return;
 
             var success = _memberService.ApplyJoin(SelectedClub.ClubId, Session.CurrentUser.UserId);
             if (success)

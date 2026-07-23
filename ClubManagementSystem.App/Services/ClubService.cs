@@ -119,12 +119,23 @@ namespace ClubManagementSystem.App.Services
                 var club = db.Clubs.Find(clubId);
                 if (club == null) return false;
 
-                // 级联删除相关数据
-                var members = db.ClubMembers.Where(m => m.ClubId == clubId);
-                db.ClubMembers.RemoveRange(members);
+                // 级联删除所有关联数据
+                db.ClubFiles.RemoveRange(db.ClubFiles.Where(f => f.ClubId == clubId));
+                db.ClubPendingEdits.RemoveRange(db.ClubPendingEdits.Where(e => e.ClubId == clubId));
+                db.VenueApplications.RemoveRange(db.VenueApplications.Where(v => v.ClubId == clubId));
+                db.FinanceRecords.RemoveRange(db.FinanceRecords.Where(f => f.ClubId == clubId));
 
-                var applications = db.JoinApplications.Where(a => a.ClubId == clubId);
-                db.JoinApplications.RemoveRange(applications);
+                var activities = db.Activities.Where(a => a.ClubId == clubId).ToList();
+                foreach (var activity in activities)
+                {
+                    db.ActivityFiles.RemoveRange(db.ActivityFiles.Where(f => f.ActivityId == activity.Id));
+                    db.ActivityRegistrations.RemoveRange(db.ActivityRegistrations.Where(r => r.ActivityId == activity.Id));
+                }
+                db.Activities.RemoveRange(activities);
+
+                db.Notices.RemoveRange(db.Notices.Where(n => n.ClubId == clubId));
+                db.JoinApplications.RemoveRange(db.JoinApplications.Where(a => a.ClubId == clubId));
+                db.ClubMembers.RemoveRange(db.ClubMembers.Where(m => m.ClubId == clubId));
 
                 db.Clubs.Remove(club);
                 db.SaveChanges();

@@ -151,7 +151,12 @@ namespace ClubManagementSystem.App.ViewModels
         private void CancelActivity(object obj)
         {
             if (SelectedActivity == null) return;
-            _activityService.CancelActivity(SelectedActivity.Id);
+            var result = System.Windows.MessageBox.Show(
+                $"确定要删除活动 \"{SelectedActivity.Title}\" 吗？\n此操作不可恢复，将同时删除所有报名记录和附件。",
+                "删除活动", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+            if (result != System.Windows.MessageBoxResult.Yes) return;
+
+            _activityService.DeleteActivity(SelectedActivity.Id);
             LoadActivities();
         }
 

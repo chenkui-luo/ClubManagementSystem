@@ -57,6 +57,25 @@ namespace ClubManagementSystem.App.Services
             }
         }
 
+        public bool DeleteActivity(int activityId)
+        {
+            using (var db = new AppDbContext())
+            {
+                var activity = db.Activities.Find(activityId);
+                if (activity == null) return false;
+
+                var registrations = db.ActivityRegistrations.Where(r => r.ActivityId == activityId);
+                db.ActivityRegistrations.RemoveRange(registrations);
+
+                var files = db.ActivityFiles.Where(f => f.ActivityId == activityId);
+                db.ActivityFiles.RemoveRange(files);
+
+                db.Activities.Remove(activity);
+                db.SaveChanges();
+                return true;
+            }
+        }
+
         public bool UpdateActivity(Activity activity)
         {
             using (var db = new AppDbContext())
